@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "name": "prism-workbench-alan-vo",
+  "owner": "ALANDVO",
+  "email": "alanvo@gmail.com",
+  "domain": "AI/ML developer tools",
+  "summary": "Work in progress: prism-workbench-alan-vo",
+  "workflows": [
+    "Discover and index skills from GitHub repositories using sparse checkout",
+    "Install skills to agent directories with hash-verified skills-lock.json",
+    "Restore all skills from lockfile via 'npx prism install' / 'ci' for CI/CD"
+  ],
+  "auth": "oidc-keycloak-saml-broker",
+  "llm_providers": [
+    "openai-compatible",
+    "anthropic",
+    "gemini",
+    "ollama"
+  ],
+  "status": "work-in-progress"
+}
