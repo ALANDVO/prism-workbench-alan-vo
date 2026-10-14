@@ -1,0 +1,190 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '24'
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r requirements.txt
+
+      - name: Run backend tests
+        run: |
+          PYTHONPATH=. .venv/bin/python -m pytest tests/ -v --tb=short
+
+      - name: Type check (mypy)
+        run: |
+          .venv/bin/pip install mypy
+          .venv/bin/mypy app/ --ignore-missing-imports || true
+
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: false
+          tags: prism-workbench-backend:test
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: false
+          tags: prism-workbench-frontend:test
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test backend image
+        run: |
+          docker run --rm -d --name backend-test -p 8000:8000 \
+            -e DATABASE_URL=sqlite+aiosqlite:///./test.db \
+            -e DEBUG=true \
+            -e DEMO_MODE=true \
+            -e SECRET_KEY=test-secret-key-for-testing-only-32-chars-minimum \
+            -e OIDC_ENABLED=false \
+            prism-workbench-backend:test
+          sleep 5
+          curl -f http://localhost:8000/api/health
+          docker stop backend-test
+
+      - name: Test frontend image
+        run: |
+          docker run --rm -d --name frontend-test -p 3000:3000 prism-workbench-frontend:test
+          sleep 3
+          curl -f http://localhost:3000/
+          docker stop frontend-test
+
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build images
+        run: |
+          docker build -t prism-backend:test ./backend
+          docker build -t prism-frontend:test ./frontend
+
+      - name: Start services
+        run: |
+          docker network create prism-test-network
+          docker run -d --name postgres-test --network prism-test-network \
+            -e POSTGRES_DB=prism -e POSTGRES_USER=prism -e POSTGRES_PASSWORD=test \
+            postgres:16-alpine
+          sleep 10
+          docker run -d --name keycloak-test --network prism-test-network \
+            -e KC_BOOTSTRAP_ADMIN_USERNAME=admin \
+            -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin \
+            -e KC_DB=postgres -e KC_DB_URL_DATABASE=prism -e KC_DB_URL_HOST=postgres-test \
+            -e KC_DB_URL_PORT=5432 -e KC_DB_USERNAME=prism -e KC_DB_PASSWORD=test \
+            -e KC_HOSTNAME=localhost -e KC_HOSTNAME_PORT=8080 \
+            -e KC_HTTP_ENABLED=true -e KC_PROXY=edge \
+            quay.io/keycloak/keycloak:25.0 start-dev --import-realm
+          sleep 30
+          docker run -d --name backend-test --network prism-test-network \
+            -e DATABASE_URL=postgresql+asyncpg://prism:test@postgres-test:5432/prism \
+            -e DEBUG=true -e DEMO_MODE=true \
+            -e SECRET_KEY=test-secret-key-for-testing-only-32-chars-minimum \
+            -e OIDC_ENABLED=true \
+            -e OIDC_ISSUER_URL=http://keycloak-test:8080/realms/prism \
+            -e OIDC_CLIENT_ID=prism-workbench \
+            -e OIDC_CLIENT_SECRET=prism-workbench-secret-change-in-production \
+            -e OIDC_REDIRECT_URI=http://localhost:3000/auth/callback \
+            -e CORS_ORIGINS='["http://localhost:3000"]' \
+            -e SESSION_COOKIE_SECURE=false \
+            -p 8000:8000 \
+            prism-backend:test
+          sleep 10
+          docker run -d --name frontend-test --network prism-test-network \
+            -p 3000:3000 \
+            prism-frontend:test
+          sleep 5
+
+      - name: Run integration tests
+        run: |
+          curl -f http://localhost:8000/api/health
+          curl -f http://localhost:3000/
+          # Test demo login flow
+          curl -f -c cookies.txt -b cookies.txt -L http://localhost:8000/api/auth/demo-login
+          curl -f -b cookies.txt http://localhost:8000/api/auth/me
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop backend-test frontend-test keycloak-test postgres-test 2>/dev/null || true
+          docker rm backend-test frontend-test keycloak-test postgres-test 2>/dev/null || true
+          docker network rm prism-test-network 2>/dev/null || true
