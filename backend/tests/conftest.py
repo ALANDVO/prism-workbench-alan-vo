@@ -4,6 +4,7 @@ from unittest.mock import patch
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+from fastapi.testclient import TestClient
 
 from app.core.config import Settings
 from app.core.database import Base, get_db_session
@@ -42,10 +43,8 @@ async def async_session(async_engine) -> AsyncSession:
         yield session
 
 
-@pytest_asyncio.fixture(scope="function")
-async def client(async_session, test_settings):
-    from fastapi.testclient import TestClient
-
+@pytest.fixture(scope="function")
+def client(async_session, test_settings):
     app = create_app()
     app.dependency_overrides[get_db_session] = lambda: async_session
 
@@ -60,3 +59,42 @@ async def client(async_session, test_settings):
             yield test_client
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def demo_user_headers(client):
+    """Get auth headers for demo user via demo login."""
+    # Login via demo mode to get session cookie
+    response = client.get("/api/auth/demo-login", follow_redirects=False)
+    # Extract session cookie
+    session_cookie = response.cookies.get("prism_session")
+    if session_cookie:
+        return {"Cookie": f"prism_session={session_cookie}"}
+    return {}
+
+
+@pytest_asyncio.fixture
+async def test_skill(async_session: AsyncSession):
+    from app.models.skill import Skill, SkillSourceType, SkillStatus
+
+    skill = Skill(
+        source_type=SkillSourceType.GITHUB,
+        source_url="https://github.com/owner/repo",
+        source_ref="main",
+        owner="owner",
+        repo="repo",
+        skill_folder="skills/test-skill",
+        skill_name="test-skill",
+        display_name="Test Skill",
+        description="A test skill",
+        version="1.0.0",
+        author="Test Author",
+        license="MIT",
+        tags="tag1,tag2",
+        skill_folder_hash="abc123",
+        status=SkillStatus.INDEXED,
+    )
+    async_session.add(skill)
+    await async_session.commit()
+    await async_session.refresh(skill)
+    return skill

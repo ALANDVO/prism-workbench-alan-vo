@@ -6,7 +6,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.core.config import settings
 from app.core.database import close_db, init_db
-from app.api import health, auth
+from app.api import health, auth, skills
 
 
 @asynccontextmanager
@@ -65,6 +65,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health.router, prefix="/api")
     app.include_router(auth.router, prefix="/api")
+    app.include_router(skills.router, prefix="/api")
 
     return app
 
