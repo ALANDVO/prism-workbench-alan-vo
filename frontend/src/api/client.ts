@@ -13,14 +13,13 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json',
       },
-      timeout: 30000,
     })
 
     this.client.interceptors.request.use(
       (config: InternalAxiosRequestConfig) => {
         return config
       },
-      (error) => Promise.reject(error)
+      (error: AxiosError) => Promise.reject(error)
     )
 
     this.client.interceptors.response.use(
@@ -32,17 +31,15 @@ class ApiClient {
           originalRequest._retry = true
 
           try {
-            if (!this.refreshPromise) {
-              this.refreshPromise = this.refreshAccessToken()
-            }
-            await this.refreshPromise
+            const accessToken = await this.refreshAccessToken()
+            originalRequest.headers.Authorization = `Bearer ${accessToken}`
             return this.client(originalRequest)
-          } catch {
+          } catch (refreshError) {
             this.clearAuth()
-            window.location.href = '/login'
-            return Promise.reject(error)
-          } finally {
-            this.refreshPromise = null
+            if (typeof window !== 'undefined') {
+              window.location.href = '/login'
+            }
+            return Promise.reject(refreshError)
           }
         }
 
@@ -52,8 +49,18 @@ class ApiClient {
   }
 
   private async refreshAccessToken(): Promise<string> {
-    const response = await this.client.post<{ access_token: string }>('/auth/refresh')
-    return response.data.access_token
+    if (this.refreshPromise) {
+      return this.refreshPromise
+    }
+
+    this.refreshPromise = this.client
+      .post<{ access_token: string }>('/auth/refresh')
+      .then((response) => response.data.access_token)
+      .finally(() => {
+        this.refreshPromise = null
+      })
+
+    return this.refreshPromise
   }
 
   private clearAuth(): void {
@@ -117,24 +124,18 @@ class ApiClient {
 
 export interface HealthResponse {
   status: string
-  app?: string
-  version?: string
-  debug?: boolean
-  demo_mode?: boolean
-  database?: string
-  error?: string
+  timestamp: string
 }
 
 export interface ReadinessResponse {
-  status: string
-  checks: Record<string, string>
+  ready: boolean
+  checks: Record<string, boolean>
 }
 
 export interface UserInfo {
   id: number
-  subject: string
-  email: string | null
-  username: string | null
+  username: string
+  email: string
   full_name: string | null
   avatar_url: string | null
   role: 'viewer' | 'operator' | 'admin'
@@ -200,6 +201,11 @@ export interface PaginatedResponse<T> {
   page: number
   page_size: number
   total_pages: number
+}
+
+export interface SkillDiscoverRequest {
+  repo_url: string
+  ref?: string
 }
 
 export const api = new ApiClient()

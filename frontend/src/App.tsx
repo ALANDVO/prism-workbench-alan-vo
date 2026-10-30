@@ -6,6 +6,8 @@ import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { SkillDetailPage } from './pages/SkillDetailPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { DiscoverPage } from './pages/DiscoverPage'
+import { SkillsListPage } from './pages/SkillsListPage'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ToastProvider } from './components/Toast'
 import './index.css'
@@ -43,7 +45,9 @@ function AppRoutes() {
       <Route element={<ProtectedRoute user={user} />}>
         <Route element={<Layout user={user!} onLogout={() => setUser(null)} />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/skills" element={<SkillsListPage />} />
           <Route path="/skills/:skillId" element={<SkillDetailPage />} />
+          <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Route>
