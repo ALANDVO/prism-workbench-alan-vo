@@ -45,3 +45,15 @@ Implementation: `backend/app/services/github_service.py`, `backend/app/services/
 
 Tests: `backend/tests/test_github_service.py`, `backend/tests/test_skills_api.py`
 
+### skill-installation — Skill installation with lockfile
+
+Status: planned
+
+Acceptance:
+- Skill installation endpoint: POST /api/skills/{id}/install
+- Skills-lock.json created/updated with installed skill hashes
+- Hash verification on installation
+- Frontend: Install button on skill cards and detail page
+- Frontend: Installations list in dashboard
+- Uninstall endpoint and UI
+

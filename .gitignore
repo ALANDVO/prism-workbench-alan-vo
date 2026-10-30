@@ -75,3 +75,4 @@ keycloak/*.json
 *.temp
 tmp/
 temp/
+venv/

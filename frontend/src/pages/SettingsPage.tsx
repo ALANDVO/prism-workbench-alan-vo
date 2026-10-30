@@ -80,7 +80,7 @@ export function SettingsPage() {
         <div className="card-body space-y-4">
           <div>
             <label className="label">Subject ID</label>
-            <input type="text" className="input" value={user?.subject ?? ''} readOnly />
+            <input type="text" className="input" value={user?.id?.toString() ?? ''} readOnly />
           </div>
           <div>
             <label className="label">Avatar</label>

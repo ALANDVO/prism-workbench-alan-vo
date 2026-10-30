@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.1.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
@@ -42,15 +46,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .env.example with documented variables
 - .gitignore excluding secrets, dependencies, build artifacts
 
+## [1.1.0] - 2026-10-30
+
+### Added
+- GitHub skill discovery with sparse checkout (--filter=blob:none)
+- SKILL.md parsing with frontmatter extraction (name, description, version, author, license, tags)
+- Skill discovery endpoint: POST /api/skills/discover with GitHub repo URL
+- Skill listing endpoint: GET /api/skills with pagination and filtering
+- Skill detail endpoint: GET /api/skills/{id}
+- Search endpoint: GET /api/skills/search?q=...
+- Skills persisted to database with content hash for change detection
+- Frontend: Discover page to enter GitHub repo URL and trigger discovery
+- Frontend: Skills list page with search, filter, pagination
+- Frontend: Skill detail page showing parsed metadata and README
+- SkillSearch component with debounced input
+- Pagination component for skills listing
+- Navigation links for Skills and Discover pages
+
+### Fixed
+- TypeScript build errors in SkillSearch component
+- Select onChange handlers in SkillsListPage
+- UserInfo type missing subject field in SettingsPage
+
+### Infrastructure
+- Added Select, Pagination, Badge, Button, Card, Input components to ui.tsx
+
 ## [Unreleased]
 
 ### Planned
-- GitHub repository skill discovery with sparse checkout
-- SKILL.md parsing and metadata extraction
 - Skill installation to agent directories
 - skills-lock.json management with hash verification
 - `npx prism install` / `ci` commands
-- Search and filtering API
 - Skill update command with hash comparison
 - AI/ML evaluation engine for skill quality scoring
 - Security analysis (advisory, labeled)

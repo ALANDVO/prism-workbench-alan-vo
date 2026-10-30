@@ -86,6 +86,21 @@
         "backend/tests/test_github_service.py",
         "backend/tests/test_skills_api.py"
       ]
+    },
+    {
+      "id": "skill-installation",
+      "title": "Skill installation with lockfile",
+      "status": "planned",
+      "acceptance": [
+        "Skill installation endpoint: POST /api/skills/{id}/install",
+        "Skills-lock.json created/updated with installed skill hashes",
+        "Hash verification on installation",
+        "Frontend: Install button on skill cards and detail page",
+        "Frontend: Installations list in dashboard",
+        "Uninstall endpoint and UI"
+      ],
+      "implementation": [],
+      "tests": []
     }
   ]
 }
