@@ -20,8 +20,8 @@ def parse_skill_md(content: str) -> Dict[str, Any]:
     """
     result = {}
 
-    # Extract frontmatter between --- delimiters
-    frontmatter_match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
+    # Extract frontmatter between --- delimiters (allow leading whitespace, optional trailing newline)
+    frontmatter_match = re.match(r"^\s*---\n(.*?)\n?---", content, re.DOTALL)
 
     if frontmatter_match:
         frontmatter = frontmatter_match.group(1)
