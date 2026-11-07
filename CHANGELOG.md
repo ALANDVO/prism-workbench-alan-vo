@@ -90,3 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SQLite not suitable for concurrent production (use PostgreSQL)
 - No rate limiting (add via reverse proxy)
 - Audit logging minimal
+
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)

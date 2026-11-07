@@ -57,3 +57,6 @@ Acceptance:
 - Frontend: Installations list in dashboard
 - Uninstall endpoint and UI
 
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)

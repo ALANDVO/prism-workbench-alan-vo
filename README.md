@@ -344,3 +344,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 ---
 
 *Prism Workbench is an independent implementation inspired by the `vercel-labs/skills` ecosystem. Not affiliated with Vercel.*
+
+---
+
+Alan Vo · [alanvo.net](https://alanvo.net)
