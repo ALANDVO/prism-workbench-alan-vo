@@ -47,15 +47,19 @@ Tests: `backend/tests/test_github_service.py`, `backend/tests/test_skills_api.py
 
 ### skill-installation — Skill installation with lockfile
 
-Status: planned
+Status: in_progress
 
 Acceptance:
-- Skill installation endpoint: POST /api/skills/{id}/install
+- Skill installation endpoint: POST /api/installations
+- Skill listing endpoint: GET /api/installations
+- Uninstall endpoint: DELETE /api/installations/{id}
 - Skills-lock.json created/updated with installed skill hashes
 - Hash verification on installation
 - Frontend: Install button on skill cards and detail page
 - Frontend: Installations list in dashboard
 - Uninstall endpoint and UI
+
+Implementation: `backend/app/api/installations.py`, `backend/app/api/__init__.py`, `backend/app/main.py`, `frontend/src/components/SkillCard.tsx`
 
 ---
 

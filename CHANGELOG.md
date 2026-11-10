@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0 — work-in-progress checkpoint
+
+Partial code published for continued development. Known issues: STATUS.md.
+
 ## 1.3.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
@@ -75,11 +79,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Infrastructure
 - Added Select, Pagination, Badge, Button, Card, Input components to ui.tsx
 
-## [Unreleased]
+### Added
+- Skill installation API endpoints (POST /api/installations, GET /api/installations, DELETE /api/installations/{id})
+- Installation model integration with skill status tracking
+- Frontend install/uninstall buttons on skill cards (ready for backend integration)
 
 ### Planned
-- Skill installation to agent directories
-- skills-lock.json management with hash verification
+- Skills-lock.json management with hash verification
 - `npx prism install` / `ci` commands
 - Skill update command with hash comparison
 - AI/ML evaluation engine for skill quality scoring
@@ -90,7 +96,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SQLite not suitable for concurrent production (use PostgreSQL)
 - No rate limiting (add via reverse proxy)
 - Audit logging minimal
-
 ---
 
 Alan Vo · [alanvo.net](https://alanvo.net) · [X: @alanvoasi](https://x.com/alanvoasi)
