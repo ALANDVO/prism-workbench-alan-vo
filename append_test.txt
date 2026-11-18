@@ -1,0 +1,2 @@
+existing line
+\nasync def sync_lockfile_for_installation(user_id, installation, skill):\n    pass\n\nasync def remove_lockfile_entry(user_id, skill_id, scope):\n    pass

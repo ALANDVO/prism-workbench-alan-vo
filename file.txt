@@ -1,0 +1,4 @@
+pattern
+new line
+old line
+new line

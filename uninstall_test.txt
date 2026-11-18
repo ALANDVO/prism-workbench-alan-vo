@@ -1,0 +1,4 @@
+installation.skill.status = SkillStatus.INDEXED
+remove line
+await session.commit()
+remove line
