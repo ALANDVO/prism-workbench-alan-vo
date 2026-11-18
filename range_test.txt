@@ -1,0 +1,4 @@
+skill.status = SkillStatus.INSTALLED
+inserted line
+await session.commit()
+inserted line
