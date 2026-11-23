@@ -1,10 +1,6 @@
 # Changelog
 
-## 1.6.0 — work-in-progress checkpoint
-
-Partial code published for continued development. Known issues: STATUS.md.
-
-## 1.5.0 — work-in-progress checkpoint
+## 1.7.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
 
