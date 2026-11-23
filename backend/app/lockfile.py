@@ -1,41 +1,68 @@
-from pathlib import Path
-            data = []
-                data = json.load(f)
-            with open(lockfile_path, "r") as f:
-        except Exception:
-        try:
-    if lockfile_path.exists():
-    data = []
-    }
-        "installed_at": installation.installed_at.isoformat() if installation.installed_at else None,
-        "target_path": installation.target_path,
-        "skill_folder_hash": skill.skill_folder_hash,
-        "updated_at": installation.updated_at.isoformat() if installation.updated_at else None,
-        "skill_folder": skill.skill_folder,
-        "skill_id": installation.skill_id,
-        "source_url": skill.source_url,
-        "scope": installation.scope,
-        "user_id": user_id,
-    lockfile_path = Path("skills-lock.json")
-async def sync_lockfile_for_installation(user_id, installation, skill):
-
 import json
+from pathlib import Path
+import os
+
+lockfile_path = Path("skills-lock.json")
+
+
+async def sync_lockfile_for_installation(user_id, installation, skill):
+    """Add or update a lockfile entry for an installation."""
     entry = {
-            data[i] = entry
+        "user_id": user_id,
+        "skill_id": installation.skill_id,
+        "skill_folder": skill.skill_folder or "",
+        "skill_folder_hash": skill.skill_folder_hash or "",
+        "target_path": installation.target_path,
+        "scope": installation.scope,
+        "installed_at": installation.installed_at.isoformat() if installation.installed_at else None,
+        "updated_at": installation.updated_at.isoformat() if installation.updated_at else None,
+        "source_url": skill.source_url or "",
+    }
+
+    if lockfile_path.exists():
+        try:
+            with open(lockfile_path, "r") as f:
+                data = json.load(f)
+        except Exception:
+            data = []
+    else:
+        data = []
+
+    # Check if entry already exists for this user/skill/scope combination
+    existing_index = None
+    for i, d in enumerate(data):
+        if (d.get("user_id") == user_id and
+                d.get("skill_id") == installation.skill_id and
+                d.get("scope") == installation.scope):
+            existing_index = i
             break
+
+    if existing_index is not None:
+        data[existing_index] = entry
+    else:
         data.append(entry)
+
     with open(lockfile_path, "w") as f:
         json.dump(data, f, indent=2)
-    else:
+
 
 async def remove_lockfile_entry(user_id, skill_id, scope):
+    """Remove a lockfile entry for an installation."""
     if not lockfile_path.exists():
-    lockfile_path = Path("skills-lock.json")
-    try:
         return
+
+    try:
         with open(lockfile_path, "r") as f:
             data = json.load(f)
     except Exception:
-    new_data = [e for e in data if not (e.get("user_id") == user_id and e.get("skill_id") == skill_id and e.get("scope") == scope)]
-    with open(lockfile_path, "w") as f:
         return
+
+    new_data = [e for e in data if not (
+        e.get("user_id") == user_id and
+        e.get("skill_id") == skill_id and
+        e.get("scope") == scope
+    )]
+
+    if len(new_data) != len(data):
+        with open(lockfile_path, "w") as f:
+            json.dump(new_data, f, indent=2)

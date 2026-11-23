@@ -9,6 +9,7 @@ from app.api.auth import require_user
 from app.core.database import get_db_session
 from app.models.user import User
 from app.models.skill import Installation, Skill, SkillScope, SkillStatus
+from app.lockfile import sync_lockfile_for_installation, remove_lockfile_entry
 router = APIRouter(prefix="/installations", tags=["installations"])
 
 
@@ -20,31 +21,27 @@ class InstallationCreateRequest(BaseModel):
 
 class InstallationResponse(BaseModel):
     id: int
+    user_id: int
     skill_id: int
-    skill_name: str
-    skill_owner: str
-    skill_repo: str
-    scope: SkillScope
-    target_path: str
+    scope: str
+    target_path: Optional[str]
     installed_hash: str
-    installed_at: datetime
-    updated_at: Optional[datetime]
     is_active: bool
+    installed_at: Optional[datetime]
+    updated_at: Optional[datetime]
 
     @classmethod
     def from_model(cls, installation: Installation) -> "InstallationResponse":
         return cls(
             id=installation.id,
+            user_id=installation.user_id,
             skill_id=installation.skill_id,
-            skill_name=installation.skill.skill_name,
-            skill_owner=installation.skill.owner,
-            skill_repo=installation.skill.repo,
             scope=installation.scope,
             target_path=installation.target_path,
             installed_hash=installation.installed_hash,
+            is_active=installation.is_active,
             installed_at=installation.installed_at,
             updated_at=installation.updated_at,
-            is_active=installation.is_active,
         )
 
 
@@ -104,6 +101,8 @@ async def create_installation(
             existing.updated_at = datetime.now(timezone.utc)
             await session.commit()
             await session.refresh(existing)
+            # Sync lockfile on reactivate
+            await sync_lockfile_for_installation(current_user.id, existing, skill)
             return InstallationResponse.from_model(existing)
 
     # Create new installation
@@ -113,7 +112,7 @@ async def create_installation(
         scope=request.scope,
         target_path=target_path,
         installed_hash=skill.skill_folder_hash or "",
-        install_metadata=None,
+        is_active=True,
     )
     session.add(installation)
 
@@ -122,6 +121,9 @@ async def create_installation(
 
     await session.commit()
     await session.refresh(installation)
+
+    # Sync lockfile for new installation
+    await sync_lockfile_for_installation(current_user.id, installation, skill)
 
     return InstallationResponse.from_model(installation)
 
@@ -202,4 +204,5 @@ async def uninstall_skill(
 
     await session.commit()
 
-
+    # Remove lockfile entry on uninstall
+    await remove_lockfile_entry(current_user.id, installation.skill_id, installation.scope)
