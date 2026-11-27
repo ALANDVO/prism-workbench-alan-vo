@@ -1,33 +1,8 @@
 # Changelog
 
-## 1.7.0 — work-in-progress checkpoint
+## 1.8.0 — work-in-progress checkpoint
 
 Partial code published for continued development. Known issues: STATUS.md.
-
-## 1.4.0 — work-in-progress checkpoint
-
-Partial code published for continued development. Known issues: STATUS.md.
-
-## 1.3.0 — work-in-progress checkpoint
-
-Partial code published for continued development. Known issues: STATUS.md.
-
-## 1.2.0 — work-in-progress checkpoint
-
-Partial code published for continued development. Known issues: STATUS.md.
-
-## 1.1.0 — work-in-progress checkpoint
-
-Partial code published for continued development. Known issues: STATUS.md.
-
-## 1.0.0 — work-in-progress checkpoint
-
-Partial code published for continued development. Known issues: STATUS.md.
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.0.0] - 2026-10-14
 
@@ -83,6 +58,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Infrastructure
 - Added Select, Pagination, Badge, Button, Card, Input components to ui.tsx
 
+## [1.2.0] - 2026-11-20
+
 ### Added
 - Skill installation API endpoints (POST /api/installations, GET /api/installations, DELETE /api/installations/{id})
 - Installation model integration with skill status tracking
@@ -100,6 +77,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SQLite not suitable for concurrent production (use PostgreSQL)
 - No rate limiting (add via reverse proxy)
 - Audit logging minimal
+
+## [1.3.0] - 2026-11-25
+
+### Added
+- GitHub skill discovery with sparse checkout (--filter=blob:none)
+- SKILL.md parsing with frontmatter extraction (name, description, version, author, license, tags)
+- Skill discovery endpoint: POST /api/skills/discover with GitHub repo URL
+- Skill listing endpoint: GET /api/skills with pagination and filtering
+- Skill detail endpoint: GET /api/skills/{id}
+- Search endpoint: GET /api/skills/search?q=...
+- Skills persisted to database with content hash for change detection
+- Frontend: Discover page to enter GitHub repo URL and trigger discovery
+- Frontend: Skills list page with search, filter, pagination
+- Frontend: Skill detail page showing parsed metadata and README
+
+### Infrastructure
+- Sparse checkout implementation with --filter=blob:none
+- Skill parser with frontmatter extraction
+
+## [1.4.0] - 2026-11-26
+
+### Added
+- GitHub skill discovery with sparse checkout (--filter=blob:none)
+- SKILL.md parsing with frontmatter extraction (name, description, version, author, license, tags)
+- Skill discovery endpoint: POST /api/skills/discover with GitHub repo URL
+- Skill listing endpoint: GET /api/skills with pagination and filtering
+- Skill detail endpoint: GET /api/skills/{id}
+- Search endpoint: GET /api/skills/search?q=...
+- Skills persisted to database with content hash for change detection
+- Frontend: Discover page to enter GitHub repo URL and trigger discovery
+- Frontend: Skills list page with search, filter, pagination
+- Frontend: Skill detail page showing parsed metadata and README
+
+### Infrastructure
+- Sparse checkout implementation with --filter=blob:none
+- Skill parser with frontmatter extraction
+
+## [1.5.0] - 2026-11-27
+
+### Added
+- Skill installation endpoint: POST /api/installations
+- Skill listing endpoint: GET /api/installations
+- Uninstall endpoint: DELETE /api/installations/{id}
+- Skills-lock.json management with hash verification
+- Hash verification on installation
+
+### Changed
+- backend/app/api/installations.py: Added lockfile update logic after installation
+- backend/app/core/lockfile.py: New utility module for skills-lock.json management
+
+## [1.6.0] - 2026-11-27
+
+### Added
+- Full skill installation with lockfile support
+- Lockfile hash verification on install/reactivate
+
 ---
 
 Alan Vo · [alanvo.net](https://alanvo.net) · [X: @alanvoasi](https://x.com/alanvoasi)

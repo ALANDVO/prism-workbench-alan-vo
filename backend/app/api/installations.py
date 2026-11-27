@@ -9,6 +9,11 @@ from app.api.auth import require_user
 from app.core.database import get_db_session
 from app.models.user import User
 from app.models.skill import Installation, Skill, SkillScope, SkillStatus
+from app.core.lockfile import (
+    read_lockfile,
+    write_lockfile,
+    update_lockfile_for_installation,
+)
 router = APIRouter(prefix="/installations", tags=["installations"])
 
 
@@ -122,6 +127,11 @@ async def create_installation(
 
     await session.commit()
     await session.refresh(installation)
+
+    # Update lockfile with installation entry
+    lock_data = read_lockfile(os.path.expanduser("~"))
+    lock_data = update_lockfile_for_installation(lock_data, installation, skill)
+    write_lockfile(lock_data, os.path.expanduser("~"))
 
     return InstallationResponse.from_model(installation)
 
